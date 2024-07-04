@@ -5,7 +5,7 @@ const Detail = () => {
       <div className="user">
         <img src="./avatar.png" alt="userPhoto" />
         <h2>Username</h2>
-        <p>User Desciptiommmmmmmmmmmmmmmmm</p>
+        <p>User Desciptiommmmmmmm</p>
       </div>
       <div className="info">
         <div className="option">
@@ -52,6 +52,7 @@ const Detail = () => {
           </div>
         </div>
         <button>Block User</button>
+        <button className="logout">Logout</button>
       </div>
       </div>
   )

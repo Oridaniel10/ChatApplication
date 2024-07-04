@@ -1,19 +1,22 @@
 .detail{
     flex: 1;
-
-
     .user{
         padding: 30px 20px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        gap: 15px;
         border-bottom: 1px solid #dddddd35;
         text-align: center;
 
+        p{
+            color: white;
+            font-size: 14px;
+        }
+
         img{
-            width: 100px;
-            height: 100px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
         } 
@@ -23,9 +26,13 @@
         padding: 20px;
         display: flex;
         flex-direction: column;
-        gap: 30px;
+        gap: 25px;
 
         .option{
+
+            display: flex;
+            flex-direction: column; /* Ensures options are stacked vertically */
+            gap: 10px;
 
 
         .title{
@@ -92,7 +99,7 @@
 
     button{
 
-        padding: 10px 20px;
+        padding: 15px;
         background-color: rgba(230, 74, 105, 0.55);
         color: white;
         border: none;
@@ -101,6 +108,15 @@
 
         &:hover{   /* if the Mouse on the Button */
             background-color: rgba(255, 0, 0, 0.9);
+        }
+
+        &.logout{  /* if the Classname is logout */
+
+            padding: 10px;
+            background-color: rgba(18, 92, 230, 0.3) ;
+            &:hover{   /* if the Mouse on the Button */
+                background-color: rgba(17, 0, 255, 0.9);
+            }
         }
 
     }

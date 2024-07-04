@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./chat.css";
 import EmojiPicker from "emoji-picker-react";
 
 const Chat = () => {
   const [open, setOpen] = useState(false);
   const [Text, setText] = useState("");
+
+  const endRef = useRef(null)
+
 
   const handleEmoji = (e) => {
     setText((prev) => prev + e.emoji);
@@ -56,6 +59,7 @@ const Chat = () => {
             <span>1 min ago</span>
           </div>
         </div>
+        <div ref={endRef}></div>   {/* UseEffect hook to scroll to this div every refresh*/}
       </div>
       <div className="bottom">
         <div className="icons">
