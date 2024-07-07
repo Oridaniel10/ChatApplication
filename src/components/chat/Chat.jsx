@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import "./chat.css";
 import EmojiPicker from "emoji-picker-react";
+import { doc, onSnapshot } from "firebase/firestore";
+import {db} from "../../lib/firebase";
+import { useChatStore } from "../../lib/chatStore";
 
 const Chat = () => {
+  const [chat, setChat] = useState();
   const [open, setOpen] = useState(false);
   const [Text, setText] = useState("");
+
+  const {chatId}= useChatStore();
+
 
   const endRef = useRef(null)
 
@@ -12,6 +19,17 @@ const Chat = () => {
     endRef.current?.scrollIntoView({behavior:"smooth"});
   }, []);
 
+  useEffect(()=>{
+    const unSub = onSnapshot(doc(db , "chats",chatId), (res)=>{
+      setChat(res.data())
+    })
+
+    return ()=>{
+      unSub();
+    } ;
+  },[chatId]);
+
+  console.log(chat)
 
   const handleEmoji = (e) => {
     setText((prev) => prev + e.emoji);
@@ -36,33 +54,16 @@ const Chat = () => {
       </div>
 
       <div className="center">
-        <div className="message">
-          <img src="./avatar.png" alt="" />
+        { chat?.messages?.map((message) => (
+        <div className="message own" key={message?.createdAt}>
           <div className="texts">
-            <p>Random text....</p>
-            <span>1 min ago</span>
+          {message.img && <img src={message.img} alt="Husky" />}
+          <p>{message.text}</p>
+            {/*<span>{message.createdAt}</span>*/}
           </div>
         </div>
-        <div className="message own">
-          <div className="texts">
-            <p>Random text....</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="message">
-          <img src="./avatar.png" alt="" />
-          <div className="texts">
-            <p>Random text....</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="message own">
-          <div className="texts">
-          <img src="./SIA.jpeg" alt="Husky" />
-          <p>Random text....rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
+        ))}
+
         <div ref={endRef}></div>   {/* UseEffect hook to scroll to this div every refresh*/}
       </div>
       <div className="bottom">

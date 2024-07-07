@@ -7,8 +7,10 @@ import Notification from "./components/notification/Notification"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "./lib/firebase"
 import { useUserStore } from "./lib/userStore"
+import { useChatStore } from "./lib/chatStore"
 const App = () => {
   const {currentUser , isLoading , fetchUserInfo} = useUserStore()
+  const {chatId} = useChatStore();
 
   //listen to authentication Login or Register + send the latest status
   useEffect(()=>{
@@ -39,8 +41,8 @@ const App = () => {
       /* user connected ?  */
       currentUser ? (<>
         <List></List>
-        <Chat></Chat>
-        <Detail></Detail></>)
+        {chatId && <Chat></Chat>}
+        {chatId && <Detail></Detail>}</>)
         :/*else*/
         (<Login></Login>)}
 
