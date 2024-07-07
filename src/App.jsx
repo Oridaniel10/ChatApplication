@@ -5,7 +5,7 @@ import Login from "./components/login/Login"
 import Notification from "./components/notification/Notification"
 const App = () => {
 // if there is no user connect - we will show the login page
-  const user = true
+  const user = false
   return (
     
     <div className='container'>
