@@ -18,7 +18,7 @@ const[avatar , setAvatar] = useState({
 
 //useState for loading while register or LOGIN
 
-const[loading , setLoading] = useState(flase)
+const[loading , setLoading] = useState(false)
 
 const handleAvatar = (e)=>{
     if(e.target.files[0]){ // if img Uploaded
@@ -66,10 +66,24 @@ const handleRegister = async(e) =>{   // async function because we use database 
       }
     };
 
-const handleLogin = (e)=>{
-    e.preventDefault()  // prevent from refresh the page after submit
-    //toast.success("Hello") // success message
-}
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        const formData = new FormData(e.target);
+        const { email, password } = Object.fromEntries(formData);
+    
+        try {
+            const res = await signInWithEmailAndPassword(auth, email, password);
+            console.log(res.user); // Example: Logging user details
+            toast.success("Logged in successfully");
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
 
 
 
@@ -80,7 +94,7 @@ const handleLogin = (e)=>{
             <form onSubmit={handleLogin}>
                 <input type="text" name="email" placeholder="Email"/>
                 <input type="password" name="password" placeholder="Password"/>
-                <button disabled={loading}>{loading ? "Loadin..." : "Sign In"}</button>
+                <button disabled={loading}>{loading ? "Loading..." : "Sign In"}</button>
 
             </form>
         </div> 
@@ -105,7 +119,7 @@ const handleLogin = (e)=>{
                 <input type="username" name="username" placeholder="Username"/>
                 <input type="text" name="email" placeholder="Email"/>
                 <input type="password" name="password" placeholder="Password"/>
-                <button disabled={loading}>{loading ? "Loadin..." : "Sign Up"}</button>
+                <button disabled={loading}>{loading ? "Loading..." : "Sign Up"}</button>
 
             </form>
         </div>
