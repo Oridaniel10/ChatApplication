@@ -3,131 +3,127 @@ import "./login.css";
 import { toast } from "react-toastify";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db, signInWithGoogle } from "../../lib/firebase";
-import { doc , setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import upload from "../../lib/upload";
 
 const Login = () => {
+  // State to store the user's avatar image
+  const [avatar, setAvatar] = useState({ file: null, url: "" });
+  // State to manage loading state during login or register
+  const [loading, setLoading] = useState(false);
 
-//state to show the picture the user has chosen
+  // Handle avatar image selection
+  const handleAvatar = (e) => {
+    if (e.target.files[0]) {
+      setAvatar({ file: e.target.files[0], url: URL.createObjectURL(e.target.files[0]) });
+    }
+  };
 
-//usestate for avatar img
-const[avatar , setAvatar] = useState({
-    file: null,
-    url:""
-})
+  // Handle user registration
+  const handleRegister = async (e) => {
+    e.preventDefault(); // Prevent form from refreshing the page
+    setLoading(true); // Set loading to true
+    const formData = new FormData(e.target); // Get form data
+    const { username, email, password } = Object.fromEntries(formData);
 
-//useState for loading while register or LOGIN
+    // Check if all fields are filled
+    if (!username || !email || !password) {
+      toast.error("Please fill in all fields");
+      setLoading(false);
+      return;
+    }
 
-const[loading , setLoading] = useState(false)
-
-const handleAvatar = (e)=>{
-    if(e.target.files[0]){ // if img Uploaded
-    setAvatar({
-        file: e.target.files[0],
-        url:URL.createObjectURL(e.target.files[0])
-    })
-}
-}
-
-const handleRegister = async(e) =>{   // async function because we use database request
-    e.preventDefault()   // prevent from refresh the page after submit
-    setLoading(true);
-    const formData = new FormData(e.target)    //create formDate
-
-    const{username , email , password} = Object.fromEntries(formData);
     try {
-        const res = await createUserWithEmailAndPassword(auth, email, password);
+      // Create user with email and password
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      // Upload avatar image if selected
+      const imgUrl = avatar.file ? await upload(avatar.file) : "";
 
-        const imgUrl = await upload(avatar.file)
+      // Add user data to Firestore
+      await setDoc(doc(db, "users", res.user.uid), {
+        username,
+        email,
+        avatar: imgUrl,
+        id: res.user.uid,
+        blocked: [],
+      });
 
-        //creating the users cluster and adding the new user
-        await setDoc(doc(db, "users" , res.user.uid),{ //db / collection name // passing the id of the user form res
-            username,
-            email,
-            avatar : imgUrl,
-            id: res.user.uid ,
-            blocked:[] ,
- 
-        });
-         //creating userchats cluster
-        await setDoc(doc(db, "userchats" , res.user.uid),{ //db / collection name // passing the id of the user form res
-            chats:[] , 
- 
-        });
+      // Initialize user chats in Firestore
+      await setDoc(doc(db, "userchats", res.user.uid), {
+        chats: [],
+      });
 
-        toast.success(`Account Created !! : \nUsername: ${username}\nEmail: ${email}\nPassword: ${password}`);
-
-
+      toast.success(`Account Created !! : \nUsername: ${username}\nEmail: ${email}\nPassword: ${password}`);
     } catch (error) {
-        console.error(error);
-        toast.error(error.message);
-      }finally{                   //no matter if try/catch , finnaly will allways work
-        setLoading(false);
-      }
-    };
+      console.error("Error during registration:", error);
+      toast.error(error.message);
+    } finally {
+      setLoading(false); // Set loading to false
+    }
+  };
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        const formData = new FormData(e.target);
-        const { email, password } = Object.fromEntries(formData);
-    
-        try {
-            const res = await signInWithEmailAndPassword(auth, email, password);
-            console.log(res.user); // Example: Logging user details
-            toast.success("Logged in successfully");
-        } catch (error) {
-            console.error(error);
-            toast.error(error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-    
+  // Handle user login
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent form from refreshing the page
+    setLoading(true); // Set loading to true
+    const formData = new FormData(e.target); // Get form data
+    const { email, password } = Object.fromEntries(formData);
 
+    // Check if all fields are filled
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      setLoading(false);
+      return;
+    }
 
+    try {
+      // Sign in with email and password
+      const res = await signInWithEmailAndPassword(auth, email, password);
+      console.log("User logged in:", res.user);
+      toast.success("Logged in successfully");
+    } catch (error) {
+      console.error("Error during login:", error);
+      toast.error(error.message);
+    } finally {
+      setLoading(false); // Set loading to false
+    }
+  };
 
   return (
     <div className="login">
-        <div className="item">
-            <h2>Welcome back,</h2>
-            <form onSubmit={handleLogin}>
-                <input type="text" name="email" placeholder="Email"/>
-                <input type="password" name="password" placeholder="Password"/>
-                <button disabled={loading}>{loading ? "Loading..." : "Sign In"}</button>
+      <div className="item">
+        <h2>Welcome back,</h2>
+        <form onSubmit={handleLogin}>
+          <input type="text" name="email" placeholder="Email" />
+          <input type="password" name="password" placeholder="Password" />
+          <button disabled={loading}>{loading ? "Loading..." : "Sign In"}</button>
+        </form>
+      </div>
 
-            </form>
-        </div> 
+      <div className="seperator"></div>
 
-        <div className="seperator"></div>
+      <div className="image">
+        <img src="./Begin-chat.png" alt="" />
+      </div>
 
-        <div className="image">  
-            <img src="./Begin-chat.png" alt="" />
-        </div>
+      <div className="seperator"></div>
 
-        <div className="seperator"></div>
-
-
-
-        <div className="item">
+      <div className="item">
         <h2>Create an Account</h2>
-            <form onSubmit={handleRegister}>        {/*register form*/}
-                <label htmlFor="file">
-                <img src={avatar.url || "./avatar.png"} alt="" />
-                Upload an image</label>
-                <input type="file" id="file" style={{display:"none"}} onChange={handleAvatar}/>
-                <input type="username" name="username" placeholder="Username"/>
-                <input type="text" name="email" placeholder="Email"/>
-                <input type="password" name="password" placeholder="Password"/>
-                <button disabled={loading}>{loading ? "Loading..." : "Sign Up"}</button>
-
-            </form>
-        </div>
-
-
-
+        <form onSubmit={handleRegister}>
+          <label htmlFor="file">
+            <img src={avatar.url || "./avatar.png"} alt="" />
+            Upload an image
+          </label>
+          <input type="file" id="file" style={{ display: "none" }} onChange={handleAvatar} />
+          <input type="text" name="username" placeholder="Username" />
+          <input type="text" name="email" placeholder="Email" />
+          <input type="password" name="password" placeholder="Password" />
+          <button disabled={loading}>{loading ? "Loading..." : "Sign Up"}</button>
+        </form>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
