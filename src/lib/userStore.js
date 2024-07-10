@@ -12,10 +12,10 @@ export const useUserStore = create((set) => ({
     }
 
     try {
-      const docRef = doc(db, "users", uid);
-      const docSnap = await getDoc(docRef);
+      const docRef = doc(db, "users", uid); // Get reference to the user's document
+      const docSnap = await getDoc(docRef); // Fetch the user's document from Firestore
       if (docSnap.exists()) {
-        set((state) => ({ ...state, currentUser: docSnap.data(), isLoading: false }));
+        set((state) => ({ ...state, currentUser: docSnap.data(), isLoading: false })); // Update store with user data
       } else {
         set({ currentUser: null, isLoading: false });
       }

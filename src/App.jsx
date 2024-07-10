@@ -15,10 +15,10 @@ const App = () => {
   //listen to authentication Login or Register + send the latest status
   useEffect(()=>{
     const unSub = onAuthStateChanged(auth,(user)=>{
-      fetchUserInfo(user?.uid);
+      fetchUserInfo(user?.uid);  // Fetch user info from Firestore if user is authenticated
     })
     return()=>{
-      unSub();
+      unSub(); // Cleanup subscription on component unmount
     };
   },[fetchUserInfo])
 

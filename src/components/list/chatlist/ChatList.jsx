@@ -2,35 +2,40 @@ import { useEffect, useState } from "react";
 import "./chatlist.css";
 import AddUser from "./addUser/AddUser";
 import { useUserStore } from "../../../lib/userStore";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { useChatStore } from "../../../lib/chatStore";
 
 const ChatList = () => {
   const [addMode, setAddmode] = useState(false);
   const [chats, setChats] = useState([]);
+  const [input, setInput] = useState("");
+
+
+
+  
   const { currentUser } = useUserStore();
   const {chatId, changeChat}= useChatStore();
 
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const docRef = doc(db, "userchats", currentUser.id);
-        const docSnap = await getDoc(docRef);
+        const docRef = doc(db, "userchats", currentUser.id); // Reference to the current user's chat document
+        const docSnap = await getDoc(docRef); // Fetch the user's chat document
 
         if (docSnap.exists()) {
           const data = docSnap.data();
           const chatPromises = (data.chats || []).map(async (chat) => {
-            const chatDocRef = doc(db, "chats", chat.chatId);
-            const chatDocSnap = await getDoc(chatDocRef);
+            const chatDocRef = doc(db, "chats", chat.chatId); // Reference to each chat document
+            const chatDocSnap = await getDoc(chatDocRef); // Fetch each chat document
 
             if (chatDocSnap.exists()) {
-              const userDocRef = doc(db, "users", chat.receiverId);
-              const userDocSnap = await getDoc(userDocRef);
+              const userDocRef = doc(db, "users", chat.receiverId); // Reference to each receiver's user document
+              const userDocSnap = await getDoc(userDocRef); // Fetch each receiver's user document
 
               if (userDocSnap.exists()) {
                 const user = userDocSnap.data();
-                return { ...chat, user };
+                return { ...chat, user }; // Combine chat and user data
               } else {
                 console.error(`User document not found for ID: ${chat.receiverId}`);
                 return null;
@@ -65,15 +70,39 @@ const ChatList = () => {
   }, [currentUser]);
 
   const handleSelect = async(chat)=>{
-    changeChat(chat.chatId , chat.user)
-  }
+
+    const userChats = chats.map(item=>{
+      const {user , ...rest} = item;
+      return rest;
+
+    });
+
+    const chatIndex = userChats.findIndex(item=> item.chatId=== chat.chatId)
+    userChats[chatIndex].isSeen = true;
+
+    const userChatsRef =doc(db , "userchats" , currentUser.id);
+
+    try{
+
+      await updateDoc(userChatsRef ,{
+        chats :userChats,
+      } )
+      changeChat(chat.chatId , chat.user)
+
+    }catch(err){
+      console.log(err);
+    }
+
+  };
+
+  const filteredChats = chats.filter((c)=> c.user.username.toLowerCase().includes(input.toLowerCase()))
 
   return (
     <div className="chatlist">
       <div className="search">
         <div className="searchBar">
           <img src="./search.png" alt="searchButton" />
-          <input type="text" placeholder="search.." />
+          <input type="text" placeholder="search.." onChange={(e)=>setInput(e.target.value)}/>
         </div>
         <img
           src={addMode ? "./minus.png" : "./plus.png"}
@@ -82,8 +111,12 @@ const ChatList = () => {
           onClick={() => setAddmode(!addMode)}
         />
       </div>
-      {chats.map((chat) => (
-        <div className="item" key={chat.chatId} onClick={()=>handleSelect(chat)}>
+      {filteredChats.map((chat) => (
+        <div className="item" key={chat.chatId} onClick={()=>handleSelect(chat)}
+        style={{
+          backgroundColor : chat?.isSeen ? "transparent" : "#5183fe" , 
+        }}
+        >
           <img src={chat.user.avatar || "./avatar.png"} alt="" />
           <div className="texts">
             <span>{chat.user ? chat.user.username : "Unknown User"}</span>
